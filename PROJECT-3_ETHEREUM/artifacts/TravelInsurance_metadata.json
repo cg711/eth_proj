@@ -1,6 +1,6 @@
 {
 	"compiler": {
-		"version": "0.8.29+commit.ab55807c"
+		"version": "0.8.26+commit.8a97fa7a"
 	},
 	"language": "Solidity",
 	"output": {
@@ -50,9 +50,9 @@
 				"name": "payIndemnity",
 				"outputs": [
 					{
-						"internalType": "string",
+						"internalType": "bool",
 						"name": "",
-						"type": "string"
+						"type": "bool"
 					}
 				],
 				"stateMutability": "payable",
@@ -180,9 +180,9 @@
 				"name": "verify",
 				"outputs": [
 					{
-						"internalType": "bool",
+						"internalType": "string",
 						"name": "",
-						"type": "bool"
+						"type": "string"
 					}
 				],
 				"stateMutability": "nonpayable",
@@ -316,11 +316,11 @@
 			]
 		},
 		"PROJECT-3_ETHEREUM/TravelInsurance.sol": {
-			"keccak256": "0x619e05029ac3b7fe26452aca5bd2b2badb1eb82f1eb087ef61a8726043af88be",
+			"keccak256": "0xd2601a1213f64bda39c78bf91dc15c37b8239d8e1f246a412bba162c3e60815b",
 			"license": "GPL-3.0",
 			"urls": [
-				"bzz-raw://e39c994f6f7e2a4079168c6f8aa3cbce0af761b14f52b0955be2722ab7d348ff",
-				"dweb:/ipfs/QmRQFjRRLLDAX86j6v4rTRWMNmkQxY9hWpoQkwcarsCZ8p"
+				"bzz-raw://ddf9ca0b812d9fce5c96066e396a28ee8d418c02ca31c3242e2340bc52b26e3c",
+				"dweb:/ipfs/QmXXWiXdqEKu56Ynm7WvF62Ym2jG34Qfzh1FVKxkomx5e2"
 			]
 		}
 	},

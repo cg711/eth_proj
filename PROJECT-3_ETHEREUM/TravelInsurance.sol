@@ -44,7 +44,7 @@ contract TravelInsurance {
         if (purchasedPolicies[msg.sender].userAddress == address(0)) {
             purchasers.push(msg.sender);
         }
-        purchasedPolicies[msg.sender] = PurchasedPolicy({ 
+        PurchasedPolicy memory policy = PurchasedPolicy({ 
             name : name,
             userAddress: msg.sender,
             flightNumber: flightNumber,
@@ -53,6 +53,8 @@ contract TravelInsurance {
             destinationCity: destinationCity,
             policyStatus: "purchased"
         });
+
+        purchasedPolicies[msg.sender] = policy;
     }
 
     function viewPurchasedPolicy() public view returns (string memory) {
@@ -71,6 +73,7 @@ contract TravelInsurance {
         );
     }
 
+    // Returns passengers balance in wei
     function viewBalance() public view isNotProvider returns (string memory) {
         return Strings.toString(msg.sender.balance);
     }
@@ -102,27 +105,27 @@ contract TravelInsurance {
 
     // Verifys flight claim status based on policy. If "flood" or "hail" present, claim is valid.
     // Because TravelInsurance cannot directly read from a file, key values passed in as arguments.
-    function verify(string calldata date, string calldata departureCity, string calldata weather) public isProvider returns (bool) {
-        if (!weather.equal("Hail") || !weather.equal("Flood")) return false;
-        for (uint i = 0; i < purchasers.length; i++) {
+    function verify(string calldata date, string calldata departureCity, string calldata weather) public isProvider returns (string memory) {
+        if (!weather.equal("Hail") && !weather.equal("Flood")) return "Not hail or flood";
+        for (uint256 i = 0; i < purchasers.length; i++) {
             PurchasedPolicy memory p = purchasedPolicies[purchasers[i]];
-            if (!p.policyStatus.equal("claimed") && p.flightDate.equal(date) && p.departureCity.equal(departureCity)) payIndemnity(p.userAddress);
+            if (!p.policyStatus.equal("claimed") && p.flightDate.equal(date) && p.departureCity.equal(departureCity)) {
+                if(!payIndemnity(p.userAddress)) return "Payout failed.";
+            }
         }    
+        return "Claim accepted!";
     }
 
     // Pay Passenger indemnity.
-    function payIndemnity(address passengerId) public payable isProvider returns (string memory) {
-        PurchasedPolicy storage policy = purchasedPolicies[passengerId];
-
+    function payIndemnity(address passengerId) public payable isProvider returns (bool) {
         // Ensure contract has minimum balance
-        require(address(this).balance >= 0.02 ether, "Not enough contract balance.");
-        (bool sent, ) = passengerId.call{value: 0.02 ether}("");
+        if(insuranceProvider.balance <= 0.02 ether) return false;
+        require(payable(insuranceProvider).transfer(0.02 ether);
         if (sent) {
-            policy.policyStatus = "claimed";
-            // return abi.encodePacked("\nPayout of 0.02 Ether successful for user ", Strings.toHexString(uint160(policy.userAddress), 20));
-            return "\nPayout of 0.02 Ether successful for user.";
+            purchasedPolicies[passengerId].policyStatus = "claimed";
+            return true;
         } else {
-            return "Payout failed.";
+            return false;
         }
 
     }

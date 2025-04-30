@@ -14,14 +14,14 @@ contract TravelInsurance {
     struct PurchasedPolicy {
         string name;
         address userAddress;
-        int flightNumber;
+        uint flightNumber;
         string flightDate;
         string departureCity;
         string destinationCity;
         string policyStatus;
     }
 
-    constructor() {
+    constructor() payable {
         insuranceProvider = msg.sender;
     }
 
@@ -39,11 +39,13 @@ contract TravelInsurance {
         return "Premium: 0.01 ETH, Indemnity: 0.02 ETH, Coverage: Hail, Flooding.";
     }
 
-    function purchasePolicy(string calldata name, int flightNumber, string calldata flightDate, string calldata departureCity, string calldata destinationCity) external isNotProvider {
+    function purchasePolicy(string calldata name, uint flightNumber, string calldata flightDate, string calldata departureCity, string calldata destinationCity) payable external isNotProvider {
+        require(msg.value == 0.01 ether, "Premium is exactly 0.01 ETH");
         // Only push new purchasers once
         if (purchasedPolicies[msg.sender].userAddress == address(0)) {
             purchasers.push(msg.sender);
         }
+        
         PurchasedPolicy memory policy = PurchasedPolicy({ 
             name : name,
             userAddress: msg.sender,
@@ -106,11 +108,13 @@ contract TravelInsurance {
     // Verifys flight claim status based on policy. If "flood" or "hail" present, claim is valid.
     // Because TravelInsurance cannot directly read from a file, key values passed in as arguments.
     function verify(string calldata date, string calldata departureCity, string calldata weather) public isProvider returns (string memory) {
-        if (!weather.equal("Hail") && !weather.equal("Flood")) return "Not hail or flood";
+        if (!weather.equal("Hail") && !weather.equal("Flood")) return "Payout failed -- policy not met.";
         for (uint256 i = 0; i < purchasers.length; i++) {
-            PurchasedPolicy memory p = purchasedPolicies[purchasers[i]];
+            address purchaser = purchasers[i];
+            PurchasedPolicy memory p = purchasedPolicies[purchaser];
             if (!p.policyStatus.equal("claimed") && p.flightDate.equal(date) && p.departureCity.equal(departureCity)) {
-                if(!payIndemnity(p.userAddress)) return "Payout failed.";
+                if(!payIndemnity(p.userAddress)) return "Payout failed -- already claimed!";
+                purchasedPolicies[purchaser].policyStatus = "claimed";
             }
         }    
         return "Claim accepted!";
@@ -118,16 +122,14 @@ contract TravelInsurance {
 
     // Pay Passenger indemnity.
     function payIndemnity(address passengerId) public payable isProvider returns (bool) {
-        // Ensure contract has minimum balance
-        if(insuranceProvider.balance <= 0.02 ether) return false;
-        require(payable(insuranceProvider).transfer(0.02 ether);
-        if (sent) {
-            purchasedPolicies[passengerId].policyStatus = "claimed";
-            return true;
-        } else {
-            return false;
-        }
 
+        address payable recipient = payable(passengerId);
+
+        // Ensure contract has minimum balance
+
+        require(address(this).balance >= 0.02 ether, "Insufficent contract balance");
+        (bool sent,) = recipient.call{value: 0.02 ether}("");
+        return sent;
     }
 
 }
